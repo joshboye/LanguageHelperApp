@@ -2,95 +2,87 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class HomeScreen extends StatelessWidget {
-  final int nodeCount = 10; // Reduced the number of nodes for less frequency
   final String username;
+  final int numberOfWaves;
 
-  const HomeScreen({Key? key, required this.username}) : super(key: key);
+  const HomeScreen({Key? key, required this.username, this.numberOfWaves = 5}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
           'Hey $username',
-          style: TextStyle(color: Colors.white, fontSize: 25),
+          style: const TextStyle(color: Colors.white, fontSize: 25),
         ),
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: RepaintBoundary(
-          child: SizedBox(
-            height: (nodeCount - 1) * 160.0 + 100.0, // Adjusted height for the new distance and added margin for padding
-            child: CustomPaint(
-              size: Size(screenWidth, (nodeCount - 1) * 160.0 + 100.0), // Adjust size accordingly
-              painter: VerticalSplineChartWithNodesPainter(nodeCount: nodeCount),
-            ),
-          ),
+        // Wrapping the canvas in a scroll view
+        child: CustomPaint(
+          size: Size(400, 800), // Set the size of the canvas, make it taller to test scrolling
+          painter: SineWaveCanvas(numberOfWaves: numberOfWaves), // Pass the number of waves
         ),
       ),
     );
   }
 }
 
-class VerticalSplineChartWithNodesPainter extends CustomPainter {
-  final int nodeCount;
-  VerticalSplineChartWithNodesPainter({required this.nodeCount});
+class SineWaveCanvas extends CustomPainter {
+  final int numberOfWaves; // Number of full waves
+  final double amplitude = 80.0; // Amplitude of the wave
+  final double frequency = 0.5; // Decreased frequency for wider waves
+  final double verticalShift = 200.0; // Vertical shift of the sine wave
+
+  SineWaveCanvas({required this.numberOfWaves});
 
   @override
   void paint(Canvas canvas, Size size) {
-    const distance = 160.0; // Increased distance between peaks and valleys for less frequency
-    final paint = Paint()
-      ..color = Colors.blue
-      ..strokeWidth = 8 // Thicker spline
-      ..style = PaintingStyle.stroke;
+    Paint wavePaint = Paint()
+      ..color = const Color.fromARGB(255, 132, 111, 150).withOpacity(0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8;
 
-    final path = Path();
-    final random = Random();
-    double xCenter = size.width / 2;
-
-    // List to store points for nodes
-    List<Offset> nodePoints = [];
-
-    // Start at the top center
-    path.moveTo(xCenter, 0);
-
-    for (int i = 0; i < nodeCount; i++) {
-      double y = i * distance; // Calculate y position
-
-      // Randomly decide the peak or valley position
-      double randomOffset = random.nextDouble() * size.width / 3;
-      double x = random.nextBool() ? xCenter + randomOffset : xCenter - randomOffset;
-
-      // Add the curve
-      if (i > 0) {
-        path.quadraticBezierTo(xCenter, y - distance / 2, x, y);
-      }
-
-      // Add the node point
-      nodePoints.add(Offset(x, y));
-    }
-
-    // Draw the path
-    canvas.drawPath(path, paint);
-
-    // Draw nodes at each peak and valley with bigger size
-    final nodePaint = Paint()
-      ..color = Colors.red
+    Paint nodePaint = Paint()
+      ..color = const Color.fromARGB(255, 132, 111, 150).withOpacity(0.5)
       ..style = PaintingStyle.fill;
 
-    for (Offset point in nodePoints) {
-      canvas.drawCircle(point, 20, nodePaint); // Larger circle for each node
+    Path path = Path();
+    double width = size.width;
+    double height = size.height;
+
+    // Calculate the number of points needed for the desired number of waves
+    double pointsPerWave = height / numberOfWaves;
+
+    // Loop through the vertical height (Y axis) to create vertical sine wave effect
+    for (double y = 0; y < height; y++) {
+      // Adjust the sine function to create the desired number of waves within the height
+      double x = amplitude * sin((frequency * 2 * pi * y) / pointsPerWave) + width / 2;
+
+      // The y-position is constant, and the x-position oscillates horizontally
+      double xPos = x; // Horizontal position (left to right based on sine function)
+      double yPos = y; // Vertical position (moves vertically downwards)
+
+      if (y == 0) {
+        path.moveTo(xPos, yPos);
+      } else {
+        path.lineTo(xPos, yPos);
+      }
+
+      // Place circular nodes at peaks and valleys (every half wave in vertical movement)
+      if (y % (height / numberOfWaves / 2) == 0 && y != 0) {
+        canvas.drawCircle(Offset(xPos, yPos), 20, nodePaint);
+      }
     }
+
+    // Draw the sine wave path
+    canvas.drawPath(path, wavePaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-
-  @override
-  bool hitTest(Offset position) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
 }
