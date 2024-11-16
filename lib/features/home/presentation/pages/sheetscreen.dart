@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stimuler_task_app/core/providers/node_provider.dart';
 import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
 import 'package:stimuler_task_app/routes.dart';
 
@@ -11,6 +12,7 @@ class SheetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sheetProvider = Provider.of<SheetProvider>(parentContext);
+    final nodeProvider = Provider.of<NodeProvider>(context);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.5,
@@ -54,6 +56,7 @@ class SheetScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         sheetProvider.selectButton(1);
+                        nodeProvider.selectedExceriseButton(1);
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
@@ -88,6 +91,7 @@ class SheetScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         sheetProvider.selectButton(2);
+                        nodeProvider.selectedExceriseButton(2);
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
@@ -122,6 +126,7 @@ class SheetScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: sheetProvider.selectedButtonIndex != null
                           ? () {
+                              print(nodeProvider.nodeIndex);
                               Navigator.pushNamed(
                                 context,
                                 AppRoutes.quiz,

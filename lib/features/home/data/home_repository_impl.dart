@@ -7,12 +7,12 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<Label>> fetchLabels() {
     return Future.value(const [
-      LabelModel("Adverb"),
-      LabelModel("Adjective"),
-      LabelModel("Conjunction"),
-      LabelModel("Prepositions"),
-      LabelModel("Tenses"),
-      LabelModel("Nouns"),
+      LabelModel("Adjectives"),
+      LabelModel("Adverbs"),
+      LabelModel("Conjunctions"),
+      LabelModel("Prefix Suffix"),
+      LabelModel("Sentence Structure"),
+      LabelModel("Verbs"),
     ]);
   }
 }

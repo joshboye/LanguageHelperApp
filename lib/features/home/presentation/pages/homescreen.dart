@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stimuler_task_app/core/providers/node_provider.dart';
 import 'package:stimuler_task_app/features/home/presentation/pages/sheetscreen.dart';
 import 'package:stimuler_task_app/features/home/presentation/providers/homeprovider.dart';
 import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
@@ -42,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final homeProvider = Provider.of<HomeProvider>(context);
     final sheetProvider = Provider.of<SheetProvider>(context);
+    final nodeProvider = Provider.of<NodeProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -75,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       labels: homeProvider.labels.map((label) => label.name).toList(),
                       onNodeTapped: (index) {
                         sheetProvider.setNodeIndex(index);
+                        nodeProvider.setNodeIndex(index);
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true, // Enables control over the height

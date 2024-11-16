@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 
-class NodeProvider extends ChangeNotifier {
-  int _selectedIndex = -1;
+class NodeProvider with ChangeNotifier {
+  int? _nodeIndex; // The node index that was tapped
+  int? _selectedButtonIndex; // The selected button index
 
-  int get selectedIndex => _selectedIndex;
+  int? get nodeIndex => _nodeIndex;
+  int? get selectedButtonIndex => _selectedButtonIndex;
 
-  void setSelectedIndex(int index) {
-    _selectedIndex = index;
-    notifyListeners();
+  void setNodeIndex(int? index) {
+    _nodeIndex = index;
+    notifyListeners(); // Notify listeners when the index is updated
+  }
+
+  void selectedExceriseButton(int index) {
+    if (_selectedButtonIndex == index) {
+      _selectedButtonIndex = null;
+    } else {
+      _selectedButtonIndex = index;
+    }
+    notifyListeners(); // Notify listeners when the selected button changes
   }
 }

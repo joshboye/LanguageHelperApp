@@ -8,6 +8,7 @@ import 'package:stimuler_task_app/features/home/presentation/providers/sheetprov
 import 'package:stimuler_task_app/features/login/data/repositories/login_repository_impl.dart';
 import 'package:stimuler_task_app/features/login/domain/usecases/get_user.dart';
 import 'package:stimuler_task_app/features/login/domain/usecases/save_username.dart';
+import 'package:stimuler_task_app/features/quiz/presentation/provider/quiz_provider.dart';
 import 'package:stimuler_task_app/routes.dart';
 import 'features/login/presentation/providers/login_provider.dart';
 
@@ -28,6 +29,8 @@ void main() {
             getUsername: getUsernameUseCase,
           ),
         ),
+        ChangeNotifierProvider(create: (_) => NodeProvider()),
+        ChangeNotifierProvider(create: (_) => QuizProvider()),
         ChangeNotifierProvider(create: (_) => SheetProvider()),
         ChangeNotifierProvider(
           create: (_) => HomeProvider(
@@ -44,6 +47,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.login,
       onGenerateRoute: AppRoutes.generateRoute,
     );
