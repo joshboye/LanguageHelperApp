@@ -4,11 +4,17 @@ import 'dart:math';
 class HomeScreen extends StatelessWidget {
   final String username;
   final int numberOfWaves;
+  final int numberOfNodes;
 
-  const HomeScreen({Key? key, required this.username, this.numberOfWaves = 5}) : super(key: key);
+  const HomeScreen({Key? key, required this.username, this.numberOfWaves = 5, this.numberOfNodes = 6}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final waveAmplitudes = List.generate(
+      numberOfWaves,
+      (_) => 80.0 + Random().nextDouble() * 80 - 40,
+    );
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -20,10 +26,25 @@ class HomeScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        // Wrapping the canvas in a scroll view
-        child: CustomPaint(
-          size: Size(400, 800), // Set the size of the canvas, make it taller to test scrolling
-          painter: SineWaveCanvas(numberOfWaves: numberOfWaves), // Pass the number of waves
+        child: SizedBox(
+          height: 1000, // Adjust height as needed
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: const Size(double.infinity, 1000),
+                painter: SineWaveCanvas(
+                  numberOfWaves: numberOfWaves,
+                  amplitudes: waveAmplitudes,
+                ),
+              ),
+              NodeButtonsOverlay(
+                numberOfWaves: numberOfWaves,
+                numberOfNodes: numberOfNodes,
+                canvasHeight: 1000,
+                amplitudes: waveAmplitudes,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -31,15 +52,11 @@ class HomeScreen extends StatelessWidget {
 }
 
 class SineWaveCanvas extends CustomPainter {
-  final int numberOfWaves; // Number of full waves
-  final double baseAmplitude = 80.0; // Base amplitude of the wave
-  final double frequency = 0.5; // Decreased frequency for wider waves
-  late final List<double> amplitudes; // Fixed list of amplitudes
+  final int numberOfWaves;
+  final List<double> amplitudes;
+  final double frequency = 0.5;
 
-  SineWaveCanvas({required this.numberOfWaves}) {
-    // Initialize the amplitudes list in the constructor body
-    amplitudes = List.generate(numberOfWaves, (_) => baseAmplitude + Random().nextDouble() * 80 - 40);
-  }
+  SineWaveCanvas({required this.numberOfWaves, required this.amplitudes});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -48,26 +65,14 @@ class SineWaveCanvas extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8;
 
-    Paint nodePaint = Paint()
-      ..color = const Color.fromARGB(255, 132, 111, 150).withOpacity(0.5)
-      ..style = PaintingStyle.fill;
-
     Path path = Path();
     double width = size.width;
     double height = size.height;
-
-    // Calculate the height of each wave segment
     double waveSegmentHeight = height / numberOfWaves;
 
-    // Loop through the vertical height to draw waves
     for (double y = 0; y < height; y++) {
-      // Determine which wave segment we are in
       int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
-
-      // Use the amplitude for the current wave segment
       double amplitude = amplitudes[waveIndex];
-
-      // Adjust the sine function for the current wave segment
       double x = amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
 
       if (y == 0) {
@@ -75,19 +80,68 @@ class SineWaveCanvas extends CustomPainter {
       } else {
         path.lineTo(x, y);
       }
-
-      // Place circular nodes at peaks and valleys (every half wave in vertical movement)
-      if (y % (waveSegmentHeight / 2) == 0 && y != 0) {
-        canvas.drawCircle(Offset(x, y), 20, nodePaint);
-      }
     }
 
-    // Draw the sine wave path
     canvas.drawPath(path, wavePaint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
+  }
+}
+
+class NodeButtonsOverlay extends StatelessWidget {
+  final int numberOfWaves;
+  final int numberOfNodes;
+  final double canvasHeight;
+  final List<double> amplitudes;
+  final double frequency = 0.5;
+
+  NodeButtonsOverlay({
+    Key? key,
+    required this.numberOfWaves,
+    required this.numberOfNodes,
+    required this.canvasHeight,
+    required this.amplitudes,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double waveSegmentHeight = canvasHeight / numberOfWaves;
+    double nodeSpacing = canvasHeight / (numberOfNodes + 1);
+
+    return Stack(
+      children: [
+        for (int i = 1; i <= numberOfNodes; i++) ...{
+          Positioned(
+            top: nodeSpacing * i - 20, // Adjust by half the button size
+            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20, // Adjust by half the button size
+            child: GestureDetector(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Tapped node $i')),
+                );
+              },
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 132, 111, 150).withOpacity(0.8),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        }
+      ],
+    );
+  }
+
+  double _calculateNodePosition(double y, double waveSegmentHeight, double width) {
+    int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
+    double amplitude = amplitudes[waveIndex];
+    return amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
   }
 }
