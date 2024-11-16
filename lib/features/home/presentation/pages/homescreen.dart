@@ -34,9 +34,12 @@ class SineWaveCanvas extends CustomPainter {
   final int numberOfWaves; // Number of full waves
   final double baseAmplitude = 80.0; // Base amplitude of the wave
   final double frequency = 0.5; // Decreased frequency for wider waves
-  final Random random = Random();
+  late final List<double> amplitudes; // Fixed list of amplitudes
 
-  SineWaveCanvas({required this.numberOfWaves});
+  SineWaveCanvas({required this.numberOfWaves}) {
+    // Initialize the amplitudes list in the constructor body
+    amplitudes = List.generate(numberOfWaves, (_) => baseAmplitude + Random().nextDouble() * 80 - 40);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -55,9 +58,6 @@ class SineWaveCanvas extends CustomPainter {
 
     // Calculate the height of each wave segment
     double waveSegmentHeight = height / numberOfWaves;
-
-    // Generate random amplitudes for each wave segment
-    List<double> amplitudes = List.generate(numberOfWaves, (_) => baseAmplitude + random.nextDouble() * 80 - 40);
 
     // Loop through the vertical height to draw waves
     for (double y = 0; y < height; y++) {
