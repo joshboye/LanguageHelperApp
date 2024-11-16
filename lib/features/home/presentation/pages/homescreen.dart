@@ -1,184 +1,104 @@
-import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:ui';
 
-class HomeScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stimuler_task_app/features/home/presentation/pages/sheetscreen.dart';
+import 'package:stimuler_task_app/features/home/presentation/providers/homeprovider.dart';
+import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
+import 'package:stimuler_task_app/features/home/widgets/node_button_overlay.dart';
+import 'package:stimuler_task_app/features/home/widgets/sine_wave.dart';
+
+class HomeScreen extends StatefulWidget {
   final String username;
   final int numberOfWaves;
   final int numberOfNodes;
 
-  const HomeScreen({Key? key, required this.username, this.numberOfWaves = 5, this.numberOfNodes = 6}) : super(key: key);
+  const HomeScreen({
+    Key? key,
+    required this.username,
+    this.numberOfWaves = 5,
+    this.numberOfNodes = 6,
+  }) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late List<double> waveAmplitude;
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = Provider.of<HomeProvider>(context, listen: false);
+    provider.fetchLabels();
+    provider.initialize(context);
+
+    waveAmplitude = List.generate(widget.numberOfWaves, (_) => 80.0 + Random().nextDouble() * 80 - 40);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final waveAmplitudes = List.generate(
-      numberOfWaves,
-      (_) => 80.0 + Random().nextDouble() * 80 - 40,
-    );
+    final homeProvider = Provider.of<HomeProvider>(context);
+    final sheetProvider = Provider.of<SheetProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          'Hey $username',
+          'Hey ${widget.username}',
           style: const TextStyle(color: Colors.white, fontSize: 25),
         ),
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
       ),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: 1000, // Adjust height as needed
-          child: Stack(
-            children: [
-              CustomPaint(
-                size: const Size(double.infinity, 1000),
-                painter: SineWaveCanvas(
-                  numberOfWaves: numberOfWaves,
-                  amplitudes: waveAmplitudes,
-                ),
-              ),
-              NodeButtonsOverlay(
-                numberOfWaves: numberOfWaves,
-                numberOfNodes: numberOfNodes,
-                canvasHeight: 1000,
-                amplitudes: waveAmplitudes,
-                labels: const [
-                  "Adverb",
-                  "Adjective",
-                  "Conjunction",
-                  "Prepositions",
-                  "Tenses",
-                  "Nouns",
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: SizedBox(
+              height: 1000,
+              child: Stack(
+                children: [
+                  CustomPaint(
+                    size: const Size(double.infinity, 1000),
+                    painter: SineWaveCanvas(
+                      numberOfWaves: widget.numberOfWaves,
+                      amplitudes: waveAmplitude,
+                    ),
+                  ),
+                  NodeButtonsOverlay(
+                      numberOfWaves: widget.numberOfWaves,
+                      numberOfNodes: widget.numberOfNodes,
+                      canvasHeight: 1000,
+                      amplitudes: waveAmplitude,
+                      labels: homeProvider.labels.map((label) => label.name).toList(),
+                      onNodeTapped: (index) {
+                        sheetProvider.setNodeIndex(index);
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true, // Enables control over the height
+                          backgroundColor: Colors.transparent, // Makes the sheet background transparent
+                          builder: (context) {
+                            return SheetScreen(parentContext: context); // Pass the parent context
+                          },
+                        ).whenComplete(() {
+                          sheetProvider.setNodeIndex(null); // Reset nodeIndex after sheet closes
+                        });
+                      }),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SineWaveCanvas extends CustomPainter {
-  final int numberOfWaves;
-  final List<double> amplitudes;
-  final double frequency = 0.5;
-
-  SineWaveCanvas({required this.numberOfWaves, required this.amplitudes});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint wavePaint = Paint()
-      ..color = const Color.fromARGB(255, 132, 111, 150).withOpacity(0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8;
-
-    Path path = Path();
-    double width = size.width;
-    double height = size.height;
-    double waveSegmentHeight = height / numberOfWaves;
-
-    for (double y = 0; y < height; y++) {
-      int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
-      double amplitude = amplitudes[waveIndex];
-      double x = amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
-
-      if (y == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    canvas.drawPath(path, wavePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
-class NodeButtonsOverlay extends StatelessWidget {
-  final int numberOfWaves;
-  final int numberOfNodes;
-  final double canvasHeight;
-  final List<double> amplitudes;
-  final List<String> labels;
-  final double frequency = 0.5;
-
-  NodeButtonsOverlay({
-    Key? key,
-    required this.numberOfWaves,
-    required this.numberOfNodes,
-    required this.canvasHeight,
-    required this.amplitudes,
-    required this.labels,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double waveSegmentHeight = canvasHeight / numberOfWaves;
-    double nodeSpacing = canvasHeight / (numberOfNodes + 1);
-
-    return Stack(
-      children: [
-        for (int i = 1; i <= numberOfNodes; i++) ...{
-          Positioned(
-            top: nodeSpacing * i - 20, // Adjust by half the button size
-            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20, // Adjust by half the button size
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Tapped node $i: ${labels[i - 1]}')),
-                    );
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 132, 111, 150).withOpacity(0.8),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  labels[i - 1],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
             ),
           ),
-        }
-      ],
+          if (sheetProvider.nodeIndex != null) // Apply blur only when the sheet is open
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              child: Container(
+                color: Colors.black.withOpacity(0.2), // Optional overlay color
+              ),
+            ),
+        ],
+      ),
     );
-  }
-
-  double _calculateNodePosition(double y, double waveSegmentHeight, double width) {
-    int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
-    double amplitude = amplitudes[waveIndex];
-    return amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
   }
 }
