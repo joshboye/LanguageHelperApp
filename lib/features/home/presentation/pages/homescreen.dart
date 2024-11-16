@@ -32,9 +32,9 @@ class HomeScreen extends StatelessWidget {
 
 class SineWaveCanvas extends CustomPainter {
   final int numberOfWaves; // Number of full waves
-  final double amplitude = 80.0; // Amplitude of the wave
+  final double baseAmplitude = 80.0; // Base amplitude of the wave
   final double frequency = 0.5; // Decreased frequency for wider waves
-  final double verticalShift = 200.0; // Vertical shift of the sine wave
+  final Random random = Random();
 
   SineWaveCanvas({required this.numberOfWaves});
 
@@ -53,27 +53,32 @@ class SineWaveCanvas extends CustomPainter {
     double width = size.width;
     double height = size.height;
 
-    // Calculate the number of points needed for the desired number of waves
-    double pointsPerWave = height / numberOfWaves;
+    // Calculate the height of each wave segment
+    double waveSegmentHeight = height / numberOfWaves;
 
-    // Loop through the vertical height (Y axis) to create vertical sine wave effect
+    // Generate random amplitudes for each wave segment
+    List<double> amplitudes = List.generate(numberOfWaves, (_) => baseAmplitude + random.nextDouble() * 80 - 40);
+
+    // Loop through the vertical height to draw waves
     for (double y = 0; y < height; y++) {
-      // Adjust the sine function to create the desired number of waves within the height
-      double x = amplitude * sin((frequency * 2 * pi * y) / pointsPerWave) + width / 2;
+      // Determine which wave segment we are in
+      int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
 
-      // The y-position is constant, and the x-position oscillates horizontally
-      double xPos = x; // Horizontal position (left to right based on sine function)
-      double yPos = y; // Vertical position (moves vertically downwards)
+      // Use the amplitude for the current wave segment
+      double amplitude = amplitudes[waveIndex];
+
+      // Adjust the sine function for the current wave segment
+      double x = amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
 
       if (y == 0) {
-        path.moveTo(xPos, yPos);
+        path.moveTo(x, y);
       } else {
-        path.lineTo(xPos, yPos);
+        path.lineTo(x, y);
       }
 
       // Place circular nodes at peaks and valleys (every half wave in vertical movement)
-      if (y % (height / numberOfWaves / 2) == 0 && y != 0) {
-        canvas.drawCircle(Offset(xPos, yPos), 20, nodePaint);
+      if (y % (waveSegmentHeight / 2) == 0 && y != 0) {
+        canvas.drawCircle(Offset(x, y), 20, nodePaint);
       }
     }
 
