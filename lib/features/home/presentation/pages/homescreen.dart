@@ -42,6 +42,14 @@ class HomeScreen extends StatelessWidget {
                 numberOfNodes: numberOfNodes,
                 canvasHeight: 1000,
                 amplitudes: waveAmplitudes,
+                labels: const [
+                  "Adverb",
+                  "Adjective",
+                  "Conjunction",
+                  "Prepositions",
+                  "Tenses",
+                  "Nouns",
+                ],
               ),
             ],
           ),
@@ -96,6 +104,7 @@ class NodeButtonsOverlay extends StatelessWidget {
   final int numberOfNodes;
   final double canvasHeight;
   final List<double> amplitudes;
+  final List<String> labels;
   final double frequency = 0.5;
 
   NodeButtonsOverlay({
@@ -104,6 +113,7 @@ class NodeButtonsOverlay extends StatelessWidget {
     required this.numberOfNodes,
     required this.canvasHeight,
     required this.amplitudes,
+    required this.labels,
   }) : super(key: key);
 
   @override
@@ -118,20 +128,47 @@ class NodeButtonsOverlay extends StatelessWidget {
           Positioned(
             top: nodeSpacing * i - 20, // Adjust by half the button size
             left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20, // Adjust by half the button size
-            child: GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Tapped node $i')),
-                );
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 132, 111, 150).withOpacity(0.8),
-                  shape: BoxShape.circle,
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Tapped node $i: ${labels[i - 1]}')),
+                    );
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 132, 111, 150).withOpacity(0.8),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Text(
+                  labels[i - 1],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         }
