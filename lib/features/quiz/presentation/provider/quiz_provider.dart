@@ -88,8 +88,6 @@ class QuizProvider with ChangeNotifier {
     _isAnswered = true;
     if (currentOptions[_selectedOptionIndex!].isCorrect) {
       excersise.incrementScore();
-      int te = excersise.score;
-      // print('score is $te');
       _isSelectedOptionCorrect = true;
     } else {
       _isSelectedOptionCorrect = false;

@@ -10,7 +10,7 @@ class QuizRepository {
         title: "Adjectives",
         exercises: [
           Exercise(
-            title: "Compound Adjectives",
+            title: "Compound Adjectives", //test
             questions: [
               Question(
                 text: "The company implemented a _ security protocol for their data centers.",
