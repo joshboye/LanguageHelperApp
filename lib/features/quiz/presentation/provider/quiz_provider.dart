@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:stimuler_task_app/features/quiz/data/repositories/quiz_repository.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/exercises.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/node.dart';
@@ -10,12 +11,14 @@ class QuizProvider with ChangeNotifier {
   bool _isSelectedOptionCorrect = false;
   bool _isAnswered = false;
   double _questionProgress = 0.1;
+  bool _isLastQuestion = false;
 
   int? get selectedOptionIndex => _selectedOptionIndex;
   int get correctOptionsCount => _correctOptionsCount;
   bool get isSelectedOptionCorrect => _isSelectedOptionCorrect;
   bool get isAnswered => _isAnswered;
   double get questionProgress => _questionProgress;
+  bool get isLastQuestion => _isLastQuestion;
 
   void selectOption(int index) {
     if (_selectedOptionIndex == index) {
@@ -30,17 +33,26 @@ class QuizProvider with ChangeNotifier {
   List<Node> nodes = [];
   int currentNodeIndex = 0;
   int currentExerciseIndex = 0;
-  int currentQuestionIndex = 1;
+  int currentQuestionIndex = 0;
 
-  void loadQuizData() {
-    QuizRepository repository = QuizRepository();
-    nodes = repository.fetchQuizData();
-    notifyListeners();
-  }
+  // Inject QuizRepository
+  final QuizRepository _quizRepository;
+  QuizProvider(this._quizRepository);
 
-  void intitaliseExcersiseFunctions() {
-    excersise.loadScore();
-    notifyListeners();
+  // Load quiz data
+  Future<void> loadQuizData() async {
+    try {
+      nodes = await _quizRepository.fetchQuizData(); // Fetch data from repository
+
+      if (nodes.isEmpty) {
+        // Handle empty data gracefully if needed
+        throw Exception("No quiz data found.");
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print("Error loading quiz data: $e");
+    }
   }
 
   void getCurrentNodeIndex(int nodeIndex) {
@@ -55,8 +67,8 @@ class QuizProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void getCurrentExcersiseIndex(int exceriseIndex) {
-    currentExerciseIndex = exceriseIndex;
+  void getCurrentExcersiseIndex(int exerciseIndex) {
+    currentExerciseIndex = exerciseIndex;
     currentQuestionIndex = 0;
     _questionProgress = 0.1;
     notifyListeners();
@@ -65,29 +77,26 @@ class QuizProvider with ChangeNotifier {
   // Get the current question
   String get currentQuestion => nodes[currentNodeIndex].exercises[currentExerciseIndex].questions[currentQuestionIndex].text;
   List<Option> get currentOptions => nodes[currentNodeIndex].exercises[currentExerciseIndex].questions[currentQuestionIndex].options;
-  Exercise get excersise => nodes[currentNodeIndex].exercises[currentExerciseIndex];
+  Exercise get exercise => nodes[currentNodeIndex].exercises[currentExerciseIndex];
+
   // Move to next question
   void nextQuestion() {
     if (currentQuestionIndex < nodes[currentNodeIndex].exercises[currentExerciseIndex].questions.length - 1) {
       currentQuestionIndex++;
+      print('question index $currentQuestionIndex');
       _isSelectedOptionCorrect = false;
       _questionProgress = currentQuestionIndex / nodes[currentNodeIndex].exercises[currentExerciseIndex].questions.length;
+      _isLastQuestion = false;
     } else {
       _questionProgress = 1.0;
+      _isLastQuestion = true;
     }
-    notifyListeners();
-  }
-
-  void resetScore() {
-    print('in here');
-    excersise.resetExcersiseScore();
     notifyListeners();
   }
 
   void isCorrect() {
     _isAnswered = true;
     if (currentOptions[_selectedOptionIndex!].isCorrect) {
-      excersise.incrementScore();
       _isSelectedOptionCorrect = true;
     } else {
       _isSelectedOptionCorrect = false;
@@ -95,20 +104,33 @@ class QuizProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void nextExercise() {
-    if (currentExerciseIndex < nodes[currentNodeIndex].exercises.length - 1) {
-      currentExerciseIndex++;
-      currentQuestionIndex = 0;
+  void incrementScore() async {
+    if (nodes.isNotEmpty && nodes[currentNodeIndex].exercises.isNotEmpty && currentExerciseIndex < nodes[currentNodeIndex].exercises.length) {
+      var exercise = nodes[currentNodeIndex].exercises[currentExerciseIndex];
+      exercise.score = (exercise.score ?? 0) + 1; // Increment score
+      print('score is ${exercise.score}');
+
+      // Save updated exercise to Hive
+      var exerciseBox = await Hive.openBox<Exercise>('exercisesBox');
+      await exerciseBox.put(exercise.title, exercise); // Update the exercise in Hive
+
+      notifyListeners();
     }
-    notifyListeners();
   }
 
-  void nextNode() {
-    if (currentNodeIndex < nodes.length - 1) {
-      currentNodeIndex++;
-      currentExerciseIndex = 0;
-      currentQuestionIndex = 0;
+  void resetScore() async {
+    if (nodes.isNotEmpty && nodes[currentNodeIndex].exercises.isNotEmpty && currentExerciseIndex < nodes[currentNodeIndex].exercises.length) {
+      var exercise = nodes[currentNodeIndex].exercises[currentExerciseIndex];
+      exercise.score = 0; // Reset score to 0
+      _isLastQuestion = false;
+
+      // Save updated exercise to Hive
+      var exerciseBox = await Hive.openBox<Exercise>('exercisesBox');
+      await exerciseBox.put(exercise.title, exercise); // Update the exercise in Hive
+
+      print('done resetting');
+
+      notifyListeners();
     }
-    notifyListeners();
   }
 }

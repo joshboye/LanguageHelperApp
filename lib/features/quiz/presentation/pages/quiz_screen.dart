@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stimuler_task_app/core/providers/node_provider.dart';
+import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
+import 'package:stimuler_task_app/features/quiz/domain/models/node.dart';
 import 'package:stimuler_task_app/features/quiz/presentation/provider/quiz_provider.dart';
 import 'package:stimuler_task_app/features/quiz/widgets/option_button.dart';
+import 'package:stimuler_task_app/routes.dart';
 
 class QuizScreen extends StatefulWidget {
   final int nodeIndex;
@@ -25,10 +28,9 @@ class _QuizScreenState extends State<QuizScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final quizProvider = Provider.of<QuizProvider>(context, listen: false);
       final nodeProvider = Provider.of<NodeProvider>(context, listen: false);
-      quizProvider.loadQuizData();
-      quizProvider.getCurrentNodeIndex(nodeProvider.nodeIndex!);
+      await quizProvider.loadQuizData();
+      quizProvider.getCurrentNodeIndex(nodeProvider.nodeIndex);
       quizProvider.getCurrentExcersiseIndex(nodeProvider.selectedExcerciseIndex!);
-      quizProvider.intitaliseExcersiseFunctions();
       quizProvider.resetScore();
     });
   }
@@ -36,6 +38,8 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final quizProvider = Provider.of<QuizProvider>(context);
+    final sheetProvider = Provider.of<SheetProvider>(context);
+    final nodeProvider = Provider.of<NodeProvider>(context);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -134,8 +138,15 @@ class _QuizScreenState extends State<QuizScreen> {
                         ? () async {
                             quizProvider.isCorrect();
                             await Future.delayed(const Duration(seconds: 2));
+                            if (quizProvider.isSelectedOptionCorrect) {
+                              quizProvider.incrementScore();
+                            }
                             quizProvider.nextQuestion();
                             quizProvider.resetSelection();
+                            if (quizProvider.isLastQuestion) {
+                              sheetProvider.setNodeIndex(null);
+                              Navigator.pushNamed(context, AppRoutes.home, arguments: nodeProvider.username);
+                            }
                           }
                         : null,
                     style: OutlinedButton.styleFrom(

@@ -4,14 +4,30 @@ import 'package:stimuler_task_app/core/providers/node_provider.dart';
 import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
 import 'package:stimuler_task_app/routes.dart';
 
-class SheetScreen extends StatelessWidget {
+class SheetScreen extends StatefulWidget {
   final BuildContext parentContext;
 
   const SheetScreen({Key? key, required this.parentContext}) : super(key: key);
 
   @override
+  State<SheetScreen> createState() => _SheetScreenState();
+}
+
+class _SheetScreenState extends State<SheetScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final sheetProvider = Provider.of<SheetProvider>(widget.parentContext, listen: false);
+      sheetProvider.loadNodesData();
+      print(sheetProvider.getExerciseScore(0, 0));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final sheetProvider = Provider.of<SheetProvider>(parentContext);
+    final sheetProvider = Provider.of<SheetProvider>(widget.parentContext);
     final nodeProvider = Provider.of<NodeProvider>(context);
 
     return DraggableScrollableSheet(
@@ -60,7 +76,7 @@ class SheetScreen extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
-                        backgroundColor: sheetProvider.selectedButtonIndex == 1 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
+                        backgroundColor: sheetProvider.selectedExcersiseIndex == 1 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
                         shape: RoundedRectangleBorder(
                           side: const BorderSide(
                             color: Color.fromARGB(255, 221, 154, 255),
@@ -68,7 +84,7 @@ class SheetScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           CircleAvatar(
                             backgroundImage: AssetImage('assets/images/books.jpg'),
@@ -81,7 +97,7 @@ class SheetScreen extends StatelessWidget {
                           ),
                           Spacer(),
                           Text(
-                            '10 mins',
+                            (sheetProvider.getExerciseScore(nodeProvider.nodeIndex - 1, 0)?.toString() ?? 'nope'),
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
                         ],
@@ -95,7 +111,7 @@ class SheetScreen extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
-                        backgroundColor: sheetProvider.selectedButtonIndex == 2 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
+                        backgroundColor: sheetProvider.selectedExcersiseIndex == 2 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
                         shape: RoundedRectangleBorder(
                           side: const BorderSide(
                             color: Color.fromARGB(255, 221, 154, 255),
@@ -103,7 +119,7 @@ class SheetScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           CircleAvatar(
                             backgroundImage: AssetImage('assets/images/books.jpg'),
@@ -116,7 +132,7 @@ class SheetScreen extends StatelessWidget {
                           ),
                           Spacer(),
                           Text(
-                            '15 mins',
+                            (sheetProvider.getExerciseScore(nodeProvider.nodeIndex - 1, 1)?.toString() ?? ''),
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
                         ],
@@ -124,7 +140,7 @@ class SheetScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: sheetProvider.selectedButtonIndex != null
+                      onPressed: sheetProvider.selectedExcersiseIndex != null
                           ? () {
                               print(nodeProvider.nodeIndex);
                               Navigator.pushNamed(
@@ -132,7 +148,7 @@ class SheetScreen extends StatelessWidget {
                                 AppRoutes.quiz,
                                 arguments: {
                                   'nodeIndex': sheetProvider.nodeIndex,
-                                  'selectedButtonIndex': sheetProvider.selectedButtonIndex,
+                                  'selectedButtonIndex': sheetProvider.selectedExcersiseIndex,
                                 },
                               );
                             }

@@ -1,16 +1,28 @@
+import 'package:hive/hive.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/exercises.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/node.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/options.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/questions.dart';
 
 class QuizRepository {
-  List<Node> fetchQuizData() {
-    return [
+  Future<void> initializeQuizData() async {
+    // Open Hive boxes
+    final nodeBox = await Hive.openBox<Node>('nodesBox');
+    final exerciseBox = await Hive.openBox<Exercise>('exercisesBox');
+    final questionBox = await Hive.openBox<Question>('questionsBox');
+    final optionBox = await Hive.openBox<Option>('optionsBox');
+
+    if (nodeBox.isNotEmpty) {
+      print('Quiz data already initialized. Skipping initialization.');
+      return; // Skip initialization
+    }
+    // Create your data structure
+    List<Node> nodes = [
       Node(
         title: "Adjectives",
         exercises: [
           Exercise(
-            title: "Compound Adjectives", //test
+            title: "Compound Adjectives",
             questions: [
               Question(
                 text: "The company implemented a _ security protocol for their data centers.",
@@ -162,61 +174,6 @@ class QuizRepository {
         ],
       ),
       Node(
-        title: "Conjunctions",
-        exercises: [
-          Exercise(
-            title: "Correlative Conjunctions",
-            questions: [
-              Question(
-                text: "_ did the research paper receive acclaim for its methodology, _ it was praised for its innovative conclusions.",
-                options: [
-                  Option(text: "Not only / but also", isCorrect: true),
-                  Option(text: "Either / or", isCorrect: false),
-                  Option(text: "Neither / nor", isCorrect: false),
-                  Option(text: "Both / and", isCorrect: false),
-                ],
-                correctOption: Option(text: "Not only / but also", isCorrect: true),
-              ),
-              Question(
-                text: "_ the quantum theory _ the string theory could fully explain the observed phenomena.",
-                options: [
-                  Option(text: "Both / and", isCorrect: false),
-                  Option(text: "Either / or", isCorrect: false),
-                  Option(text: "Neither / nor", isCorrect: true),
-                  Option(text: "Not only / but also", isCorrect: false),
-                ],
-                correctOption: Option(text: "Neither / nor", isCorrect: true),
-              ),
-            ],
-          ),
-          Exercise(
-            title: "Subordinating Conjunctions in Academic Context",
-            questions: [
-              Question(
-                text: "The experiment yielded unexpected results _ the researchers followed the protocol precisely.",
-                options: [
-                  Option(text: "although", isCorrect: true),
-                  Option(text: "because", isCorrect: false),
-                  Option(text: "unless", isCorrect: false),
-                  Option(text: "if", isCorrect: false),
-                ],
-                correctOption: Option(text: "although", isCorrect: true),
-              ),
-              Question(
-                text: "The archaeological team will continue excavating _ they find evidence of the ancient civilization.",
-                options: [
-                  Option(text: "unless", isCorrect: false),
-                  Option(text: "until", isCorrect: true),
-                  Option(text: "while", isCorrect: false),
-                  Option(text: "whereas", isCorrect: false),
-                ],
-                correctOption: Option(text: "until", isCorrect: true),
-              ),
-            ],
-          ),
-        ],
-      ),
-      Node(
         title: "Prefix Suffix",
         exercises: [
           Exercise(
@@ -266,6 +223,61 @@ class QuizRepository {
                   Option(text: "mathematicianly", isCorrect: false),
                 ],
                 correctOption: Option(text: "mathematically", isCorrect: true),
+              ),
+            ],
+          ),
+        ],
+      ),
+      Node(
+        title: "Conjunctions",
+        exercises: [
+          Exercise(
+            title: "Coordinating Conjunctions",
+            questions: [
+              Question(
+                text: "The data was gathered, _ the analysis was not completed.",
+                options: [
+                  Option(text: "but", isCorrect: true),
+                  Option(text: "and", isCorrect: false),
+                  Option(text: "because", isCorrect: false),
+                  Option(text: "or", isCorrect: false),
+                ],
+                correctOption: Option(text: "but", isCorrect: true),
+              ),
+              Question(
+                text: "The system was designed to be efficient, _ it faced several issues during deployment.",
+                options: [
+                  Option(text: "but", isCorrect: true),
+                  Option(text: "and", isCorrect: false),
+                  Option(text: "although", isCorrect: false),
+                  Option(text: "yet", isCorrect: false),
+                ],
+                correctOption: Option(text: "but", isCorrect: true),
+              ),
+            ],
+          ),
+          Exercise(
+            title: "Subordinating Conjunctions",
+            questions: [
+              Question(
+                text: "The scientists continued their research _ they faced numerous challenges.",
+                options: [
+                  Option(text: "although", isCorrect: true),
+                  Option(text: "and", isCorrect: false),
+                  Option(text: "because", isCorrect: false),
+                  Option(text: "but", isCorrect: false),
+                ],
+                correctOption: Option(text: "although", isCorrect: true),
+              ),
+              Question(
+                text: "The researchers could not proceed with the study _ they obtained approval from the committee.",
+                options: [
+                  Option(text: "unless", isCorrect: true),
+                  Option(text: "and", isCorrect: false),
+                  Option(text: "because", isCorrect: false),
+                  Option(text: "although", isCorrect: false),
+                ],
+                correctOption: Option(text: "unless", isCorrect: true),
               ),
             ],
           ),
@@ -406,6 +418,52 @@ class QuizRepository {
           ),
         ],
       ),
+      // Add additional nodes and exercises following the same structure.
     ];
+
+    // Save to Hive
+    for (var node in nodes) {
+      // Save Exercises
+      for (var exercise in node.exercises) {
+        // Save Questions
+        for (var question in exercise.questions) {
+          // Save Options
+          for (var option in question.options) {
+            await optionBox.put(option.text, option); // Use `text` as a unique key
+          }
+          await questionBox.put(question.text, question); // Use `text` as a unique key
+        }
+        await exerciseBox.put(exercise.title, exercise); // Use `title` as a unique key
+      }
+      await nodeBox.put(node.title, node); // Use `title` as a unique key
+    }
+
+    // Close the boxes (if needed, not required during app lifecycle)
+    await nodeBox.close();
+    await exerciseBox.close();
+    await questionBox.close();
+    await optionBox.close();
+  }
+
+  Future<List<Node>> fetchQuizData() async {
+    try {
+      var nodeBox = await Hive.openBox<Node>('nodesBox');
+      List<Node> nodes = nodeBox.values.toList();
+
+      return nodes;
+    } catch (e) {
+      print('Error fetching quiz data: $e');
+      return [];
+    }
+  }
+
+  Future<void> saveQuizData(List<Node> nodes) async {
+    try {
+      var box = await Hive.openBox<Node>('nodesBox');
+      await box.clear(); // Clear the box before saving new data
+      await box.addAll(nodes); // Save new data to Hive
+    } catch (e) {
+      print('Error saving quiz data: $e');
+    }
   }
 }

@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     Key? key,
-    required this.username,
+    this.username = '',
     this.numberOfWaves = 5,
     this.numberOfNodes = 6,
   }) : super(key: key);
@@ -32,11 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<HomeProvider>(context, listen: false);
-    provider.fetchLabels();
-    provider.initialize(context);
-
     waveAmplitude = List.generate(widget.numberOfWaves, (_) => 80.0 + Random().nextDouble() * 80 - 40);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<HomeProvider>(context, listen: false);
+      await provider.fetchLabels();
+      provider.initialize(context);
+    });
   }
 
   @override
@@ -44,6 +45,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final homeProvider = Provider.of<HomeProvider>(context);
     final sheetProvider = Provider.of<SheetProvider>(context);
     final nodeProvider = Provider.of<NodeProvider>(context);
+    nodeProvider.setUserName(widget.username);
+
+    // Generate default labels with the correct length based on numberOfNodes
+    final defaultLabels = List.generate(widget.numberOfNodes, (index) => 'Node ${index + 1}');
+
+    // Use default labels when homeProvider.labels is empty
+    final labels = homeProvider.labels.isEmpty ? defaultLabels : homeProvider.labels.map((label) => label.name).toList();
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -69,36 +77,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       amplitudes: waveAmplitude,
                     ),
                   ),
-                  NodeButtonsOverlay(
+                  // Only show NodeButtonsOverlay when we have valid labels
+                  if (labels.isNotEmpty)
+                    NodeButtonsOverlay(
                       numberOfWaves: widget.numberOfWaves,
                       numberOfNodes: widget.numberOfNodes,
                       canvasHeight: 1000,
                       amplitudes: waveAmplitude,
-                      labels: homeProvider.labels.map((label) => label.name).toList(),
+                      labels: labels,
                       onNodeTapped: (index) {
                         sheetProvider.setNodeIndex(index);
                         nodeProvider.setNodeIndex(index);
                         print('node index is $index');
                         showModalBottomSheet(
                           context: context,
-                          isScrollControlled: true, // Enables control over the height
-                          backgroundColor: Colors.transparent, // Makes the sheet background transparent
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
                           builder: (context) {
-                            return SheetScreen(parentContext: context); // Pass the parent context
+                            return SheetScreen(parentContext: context);
                           },
                         ).whenComplete(() {
-                          sheetProvider.setNodeIndex(null); // Reset nodeIndex after sheet closes
+                          sheetProvider.setNodeIndex(null);
                         });
-                      }),
+                      },
+                    ),
+                  // Show loading indicator if data is being fetched
+                  if (homeProvider.isLoading) const Center(child: CircularProgressIndicator()),
                 ],
               ),
             ),
           ),
-          if (sheetProvider.nodeIndex != null) // Apply blur only when the sheet is open
+          if (sheetProvider.nodeIndex != null)
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
               child: Container(
-                color: Colors.black.withOpacity(0.2), // Optional overlay color
+                color: Colors.black.withOpacity(0.2),
               ),
             ),
         ],
