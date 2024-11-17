@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stimuler_task_app/core/providers/node_provider.dart';
 import 'package:stimuler_task_app/features/quiz/presentation/provider/quiz_provider.dart';
 import 'package:stimuler_task_app/features/quiz/widgets/option_button.dart';
 
@@ -21,9 +22,14 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final quizProvider = Provider.of<QuizProvider>(context, listen: false);
+      final nodeProvider = Provider.of<NodeProvider>(context, listen: false);
       quizProvider.loadQuizData();
+      quizProvider.getCurrentNodeIndex(nodeProvider.nodeIndex!);
+      quizProvider.getCurrentExcersiseIndex(nodeProvider.selectedExcerciseIndex!);
+      quizProvider.intitaliseExcersiseFunctions();
+      quizProvider.resetScore();
     });
   }
 
@@ -31,7 +37,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget build(BuildContext context) {
     final quizProvider = Provider.of<QuizProvider>(context);
     return Scaffold(
-      backgroundColor: Colors.black, // Set background color to black
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text(
           "Grammar Practice",
@@ -44,84 +50,113 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: Colors.black, // Set AppBar background color to black
+        backgroundColor: Colors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thicker progress indicator
             SizedBox(
-              height: 10, // Make the progress bar thicker
+              height: 10,
               child: LinearProgressIndicator(
-                value: 0.6, // Change this value dynamically to show progress
+                value: quizProvider.questionProgress,
                 backgroundColor: Colors.grey.shade700,
                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
               ),
             ),
             const SizedBox(height: 20),
-            // Question text
             Text(
               quizProvider.currentQuestion,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 20),
-            // Image
             Center(
               child: Image.asset(
-                'assets/images/question_image.png', // Replace with your image path
+                'assets/images/question_image.png',
                 height: 250,
               ),
             ),
             const Spacer(),
-            // Buttons
             Column(
               children: [
                 OptionButton(
                   optionName: 'A',
                   label: quizProvider.currentOptions[0].text,
-                  color: Colors.transparent,
+                  color: quizProvider.selectedOptionIndex == 0
+                      ? quizProvider.isSelectedOptionCorrect && quizProvider.isAnswered == true
+                          ? Colors.green
+                          : quizProvider.isSelectedOptionCorrect == false && quizProvider.isAnswered == true
+                              ? Colors.red
+                              : Colors.blue
+                      : Colors.transparent,
                   onPressed: () {
-                    quizProvider.selectOption(1);
-                    // Add action for Option 1
+                    quizProvider.selectOption(0);
                   },
                 ),
                 const SizedBox(height: 20),
                 OptionButton(
                   optionName: 'B',
-                  color: Colors.transparent,
                   label: quizProvider.currentOptions[1].text,
+                  color: quizProvider.selectedOptionIndex == 1
+                      ? quizProvider.isSelectedOptionCorrect && quizProvider.isAnswered == true
+                          ? Colors.green
+                          : quizProvider.isSelectedOptionCorrect == false && quizProvider.isAnswered == true
+                              ? Colors.red
+                              : Colors.blue
+                      : Colors.transparent,
                   onPressed: () {
-                    quizProvider.selectOption(2);
-                    // Add action for Option 2
+                    quizProvider.selectOption(1);
                   },
                 ),
                 const SizedBox(height: 20),
                 OptionButton(
                   optionName: 'C',
-                  color: Colors.transparent,
                   label: quizProvider.currentOptions[2].text,
+                  color: quizProvider.selectedOptionIndex == 2
+                      ? quizProvider.isSelectedOptionCorrect && quizProvider.isAnswered == true
+                          ? Colors.green
+                          : quizProvider.isSelectedOptionCorrect == false && quizProvider.isAnswered == true
+                              ? Colors.red
+                              : Colors.blue
+                      : Colors.transparent,
                   onPressed: () {
-                    quizProvider.selectOption(3);
-                    // Add action for Option 3
+                    quizProvider.selectOption(2);
                   },
                 ),
                 const SizedBox(height: 20),
+                // Check Answer Button
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: OutlinedButton(
-                    onPressed: () {
-                      // Add action for Option 4
-                    },
+                    onPressed: quizProvider.selectedOptionIndex != null
+                        ? () async {
+                            quizProvider.isCorrect();
+                            await Future.delayed(const Duration(seconds: 2));
+                            quizProvider.nextQuestion();
+                            quizProvider.resetSelection();
+                          }
+                        : null,
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 68, 66, 66),
+                      backgroundColor: quizProvider.selectedOptionIndex != null
+                          ? (quizProvider.isSelectedOptionCorrect && quizProvider.isAnswered == true
+                              ? Colors.green
+                              : quizProvider.isSelectedOptionCorrect == false && quizProvider.isAnswered == true
+                                  ? Colors.red
+                                  : Colors.blue)
+                          : const Color.fromARGB(255, 68, 66, 66),
                       side: const BorderSide(color: Colors.transparent),
                     ),
-                    child: const Text(
-                      "Check Answer",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    child: Text(
+                      quizProvider.selectedOptionIndex != null
+                          ? (quizProvider.isSelectedOptionCorrect && quizProvider.isAnswered == true
+                              ? "Good Work!"
+                              : quizProvider.isSelectedOptionCorrect == false && quizProvider.isAnswered == true
+                                  ? "That Wasn't Right"
+                                  : "Check Answer")
+                          : "Check Answer",
+                      style: const TextStyle(color: Colors.white, fontSize: 20),
                     ),
                   ),
                 ),

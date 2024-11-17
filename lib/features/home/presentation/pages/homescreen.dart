@@ -78,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onNodeTapped: (index) {
                         sheetProvider.setNodeIndex(index);
                         nodeProvider.setNodeIndex(index);
+                        print('node index is $index');
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true, // Enables control over the height

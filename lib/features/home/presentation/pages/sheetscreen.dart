@@ -56,7 +56,7 @@ class SheetScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         sheetProvider.selectButton(1);
-                        nodeProvider.selectedExceriseButton(1);
+                        nodeProvider.selectedExceriseButton(0);
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
@@ -68,19 +68,19 @@ class SheetScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             backgroundImage: AssetImage('assets/images/books.jpg'),
                             radius: 30,
                           ),
-                          const SizedBox(width: 16),
-                          const Text(
+                          SizedBox(width: 16),
+                          Text(
                             'Exercise 1',
                             style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
-                          const Spacer(),
-                          const Text(
+                          Spacer(),
+                          Text(
                             '10 mins',
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
@@ -91,7 +91,7 @@ class SheetScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         sheetProvider.selectButton(2);
-                        nodeProvider.selectedExceriseButton(2);
+                        nodeProvider.selectedExceriseButton(1);
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
@@ -103,19 +103,19 @@ class SheetScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             backgroundImage: AssetImage('assets/images/books.jpg'),
                             radius: 30,
                           ),
-                          const SizedBox(width: 16),
-                          const Text(
+                          SizedBox(width: 16),
+                          Text(
                             'Exercise 2',
                             style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
-                          const Spacer(),
-                          const Text(
+                          Spacer(),
+                          Text(
                             '15 mins',
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
