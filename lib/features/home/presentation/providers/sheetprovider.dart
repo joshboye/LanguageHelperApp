@@ -51,51 +51,48 @@ class SheetProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Node-to-exercise mapping
+  final Map<int, List<int>> _nodeToExerciseMap = {
+    0: [
+      3,
+      9,
+      7
+    ],
+    1: [
+      0,
+      2
+    ],
+    2: [
+      4,
+      13
+    ],
+    3: [
+      11,
+      1
+    ],
+    4: [
+      5,
+      8
+    ],
+    5: [
+      10,
+      6,
+      12
+    ],
+  };
+
+  // Getter for nodeToExerciseMap
+  Map<int, List<int>> get nodeToExerciseMap => _nodeToExerciseMap;
+
   // Load the score for a specific exercise
   int? getExerciseScore(int exerciseIndex) {
-    // Mapping of nodeIndex to their respective exercise indices
-    const nodeToExerciseMap = {
-      0: [
-        3,
-        9,
-        7
-      ],
-      1: [
-        0,
-        2
-      ],
-      2: [
-        4,
-        13
-      ],
-      3: [
-        11,
-        1
-      ],
-      4: [
-        5,
-        8
-      ],
-      5: [
-        10,
-        6,
-        12
-      ],
-    };
-
-    // Validate node index and exercise index
-    if (currentNodeIndex >= 0 && currentNodeIndex < nodeToExerciseMap.length) {
-      final exerciseIndices = nodeToExerciseMap[currentNodeIndex];
+    if (_currentNodeIndex >= 0 && _currentNodeIndex < _nodeToExerciseMap.length) {
+      final exerciseIndices = _nodeToExerciseMap[_currentNodeIndex];
       if (exerciseIndex >= 0 && exerciseIndex < exerciseIndices!.length) {
         final actualExerciseIndex = exerciseIndices[exerciseIndex];
-        print('the generated index is $actualExerciseIndex');
         return exercises[actualExerciseIndex].score;
       }
     }
-
-    print('the current node index is $currentNodeIndex');
-
-    print('nulledd');
     return null; // Return null if indices are invalid
   }
 }

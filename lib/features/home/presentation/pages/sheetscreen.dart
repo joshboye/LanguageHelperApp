@@ -13,7 +13,7 @@ class SheetScreen extends StatefulWidget {
   State<SheetScreen> createState() => _SheetScreenState();
 }
 
-class _SheetScreenState extends State<SheetScreen> {
+class _SheetScreenState extends State<SheetScreen> with RouteAware {
   @override
   void initState() {
     super.initState();
@@ -24,7 +24,17 @@ class _SheetScreenState extends State<SheetScreen> {
       // Wait for data to load
       await sheetProvider.loadNodesData();
       sheetProvider.getCurrentNodeIndex(nodeProvider.nodeIndex);
-      // print(sheetProvider.getExerciseScore(2));
+    });
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    // Re-trigger the logic that you want to run again when coming back to this screen
+    print('reubilt');
+    setState(() {
+      // You can trigger state changes here or call your initialization logic
+      print('rebuilt yay');
     });
   }
 
@@ -68,117 +78,83 @@ class _SheetScreenState extends State<SheetScreen> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: ListView(
+                child: ListView.builder(
                   controller: scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        sheetProvider.selectButton(1);
-                        nodeProvider.selectedExceriseButton(0);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
-                        backgroundColor: sheetProvider.selectedExcersiseIndex == 1 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(
-                            color: Color.fromARGB(255, 221, 154, 255),
+                  itemCount: sheetProvider.nodeToExerciseMap[sheetProvider.currentNodeIndex]?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          sheetProvider.selectButton(index); // Update selected button
+                          nodeProvider.selectedExceriseButton(index); // Notify node provider
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
+                          backgroundColor: sheetProvider.selectedExcersiseIndex == index ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(
+                              color: Color.fromARGB(255, 221, 154, 255),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              backgroundImage: AssetImage('assets/images/books.jpg'),
+                              radius: 30,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Exercise ${index + 1}', // Dynamic exercise label
+                              style: const TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                            const Spacer(),
+                            Text(
+                              (sheetProvider.getExerciseScore(index)?.toString() ?? ''),
+                              style: const TextStyle(fontSize: 14, color: Colors.white70),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: AssetImage('assets/images/books.jpg'),
-                            radius: 30,
-                          ),
-                          SizedBox(width: 16),
-                          Text(
-                            'Exercise 1',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                          Spacer(),
-                          Text(
-                            // '',
-                            (sheetProvider.getExerciseScore(0)?.toString() ?? ''),
-                            style: TextStyle(fontSize: 14, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        sheetProvider.selectButton(2);
-                        nodeProvider.selectedExceriseButton(1);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
-                        backgroundColor: sheetProvider.selectedExcersiseIndex == 2 ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(
-                            color: Color.fromARGB(255, 221, 154, 255),
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: AssetImage('assets/images/books.jpg'),
-                            radius: 30,
-                          ),
-                          SizedBox(width: 16),
-                          Text(
-                            'Exercise 2',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                          Spacer(),
-                          Text(
-                            // '',
-                            (sheetProvider.getExerciseScore(1)?.toString() ?? ''),
-                            style: TextStyle(fontSize: 14, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: sheetProvider.selectedExcersiseIndex != null
-                          ? () {
-                              print(nodeProvider.nodeIndex);
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.quiz,
-                                arguments: {
-                                  'nodeIndex': sheetProvider.nodeIndex,
-                                  'selectedButtonIndex': sheetProvider.selectedExcersiseIndex,
-                                },
-                              );
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 60),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ).copyWith(
-                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (states) {
-                            if (states.contains(WidgetState.disabled)) {
-                              return const Color.fromARGB(255, 112, 100, 113); // Disabled state color
-                            }
-                            return const Color.fromARGB(255, 207, 64, 233); // Enabled state color
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: sheetProvider.selectedExcersiseIndex != null
+                    ? () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.quiz,
+                          arguments: {
+                            'nodeIndex': sheetProvider.nodeIndex,
+                            'selectedButtonIndex': sheetProvider.selectedExcersiseIndex,
                           },
-                        ),
-                      ),
-                      child: const Text(
-                        'Start Practice',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 60),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ).copyWith(
+                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                    (states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        return const Color.fromARGB(255, 112, 100, 113); // Disabled state color
+                      }
+                      return const Color.fromARGB(255, 207, 64, 233); // Enabled state color
+                    },
+                  ),
+                ),
+                child: const Text(
+                  'Start Practice',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             ],
