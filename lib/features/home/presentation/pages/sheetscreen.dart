@@ -83,6 +83,10 @@ class _SheetScreenState extends State<SheetScreen> with RouteAware {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: sheetProvider.nodeToExerciseMap[sheetProvider.currentNodeIndex]?.length ?? 0,
                   itemBuilder: (context, index) {
+                    final exerciseScore = sheetProvider.getExerciseScore(index);
+                    final isSelected = sheetProvider.selectedExcersiseIndex == index;
+                    final hasScore = exerciseScore != null;
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: ElevatedButton(
@@ -92,10 +96,10 @@ class _SheetScreenState extends State<SheetScreen> with RouteAware {
                         },
                         style: ElevatedButton.styleFrom(
                           minimumSize: Size(MediaQuery.of(context).size.width * 0.9, 90),
-                          backgroundColor: sheetProvider.selectedExcersiseIndex == index ? Colors.purple[300] : const Color.fromARGB(255, 35, 9, 48),
+                          backgroundColor: isSelected ? (hasScore ? Colors.green : Colors.purple[300]) : const Color.fromARGB(255, 35, 9, 48),
                           shape: RoundedRectangleBorder(
-                            side: const BorderSide(
-                              color: Color.fromARGB(255, 221, 154, 255),
+                            side: BorderSide(
+                              color: hasScore ? Colors.green : const Color.fromARGB(255, 221, 154, 255),
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -112,10 +116,16 @@ class _SheetScreenState extends State<SheetScreen> with RouteAware {
                               style: const TextStyle(fontSize: 18, color: Colors.white),
                             ),
                             const Spacer(),
-                            Text(
-                              (sheetProvider.getExerciseScore(index)?.toString() ?? ''),
-                              style: const TextStyle(fontSize: 14, color: Colors.white70),
-                            ),
+                            if (hasScore) // Only show the score if it's not null
+                              Text(
+                                'Score: $exerciseScore',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: isSelected
+                                      ? Colors.white // If button is selected, make the text white
+                                      : (hasScore ? Colors.green : const Color.fromARGB(179, 233, 226, 226)), // If score exists and button is not selected, make it green
+                                ),
+                              ),
                           ],
                         ),
                       ),

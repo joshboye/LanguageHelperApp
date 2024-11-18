@@ -8,7 +8,6 @@ class HomeProvider with ChangeNotifier {
 
   List<Label> _labels = [];
   List<double> _nodeProgress = [];
-  int _currentNode = 0;
   bool _isLoading = true;
 
   List<Label> get labels => _labels;
