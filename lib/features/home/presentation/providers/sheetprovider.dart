@@ -111,7 +111,7 @@ class SheetProvider with ChangeNotifier {
     for (var exerciseIndex in exerciseIndices!) {
       // Directly access the score for the exercise
       final exercise = exercises[exerciseIndex]; // Get the Exercise object
-      print('Score for exercise $exerciseIndex: ${exercise.score}');
+      // print('Score for exercise $exerciseIndex: ${exercise.score}');
 
       if (exercise.score == null) {
         allScoresFilled = false;

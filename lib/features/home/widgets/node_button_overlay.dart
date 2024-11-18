@@ -31,7 +31,7 @@ class NodeButtonsOverlay extends StatelessWidget {
     }
 
     final provider = Provider.of<HomeProvider>(context);
-    double width = MediaQuery.of(context).size.width;
+    double screenWidth = MediaQuery.of(context).size.width;
     double waveSegmentHeight = canvasHeight / numberOfWaves;
     double nodeSpacing = canvasHeight / (numberOfNodes + 1);
 
@@ -40,16 +40,24 @@ class NodeButtonsOverlay extends StatelessWidget {
         for (int i = 1; i <= numberOfNodes; i++) ...{
           Positioned(
             top: nodeSpacing * i - 20,
-            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20,
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (provider.nodeProgress[i - 1] == 1) {
-                      onNodeTapped(i);
-                    }
-                  },
-                  child: Stack(
+            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, screenWidth) - 20,
+            child: GestureDetector(
+              onTap: () {
+                if (provider.nodeProgress[i - 1] == 1) {
+                  onNodeTapped(i);
+                }
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (_shouldDisplayPillOnLeft(
+                    _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, screenWidth),
+                    screenWidth,
+                  ))
+                    _buildPill(provider.nodeProgress[i - 1].toInt(), labels[i - 1]),
+
+                  // Node (circle)
+                  Stack(
                     alignment: Alignment.center,
                     children: [
                       Container(
@@ -73,17 +81,15 @@ class NodeButtonsOverlay extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  labels[i - 1],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+
+                  if (!_shouldDisplayPillOnLeft(
+                    _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, screenWidth),
+                    screenWidth,
+                  ))
+                    _buildPill(provider.nodeProgress[i - 1].toInt(), labels[i - 1]),
+                ],
+              ),
             ),
           ),
         }
@@ -91,9 +97,34 @@ class NodeButtonsOverlay extends StatelessWidget {
     );
   }
 
-  double _calculateNodePosition(double y, double waveSegmentHeight, double width) {
+  double _calculateNodePosition(double y, double waveSegmentHeight, double screenWidth) {
     int waveIndex = (y ~/ waveSegmentHeight).clamp(0, numberOfWaves - 1);
     double amplitude = amplitudes[waveIndex];
-    return amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + width / 2;
+    return amplitude * sin((frequency * 2 * pi * y) / waveSegmentHeight) + screenWidth / 2;
+  }
+
+  bool _shouldDisplayPillOnLeft(double nodePosition, double screenWidth) {
+    const double pillThreshold = 100; // Minimum space required to display the pill on the right
+    return nodePosition + pillThreshold > screenWidth;
+  }
+
+  Widget _buildPill(int progress, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: progress == 1
+            ? Colors.green.withOpacity(0.8) // Green pill for completed node
+            : Colors.transparent, // Transparent for incomplete nodes
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 }

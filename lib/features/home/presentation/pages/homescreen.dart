@@ -43,8 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await sheetsProvider.loadNodesData(provider);
       provider.initialize(context);
       provider.updateAllNodeProgress(sheetsProvider, provider);
-
-      print('node progress in homeinti is ${provider.nodeProgress}');
+      print('in inti of home');
     });
   }
 
