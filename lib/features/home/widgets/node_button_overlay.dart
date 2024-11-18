@@ -26,6 +26,12 @@ class NodeButtonsOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (labels.isEmpty || labels.length < numberOfNodes) {
+      // Ensure the widget doesn't render prematurely
+      print('in here');
+      return const SizedBox.shrink();
+    }
+
     final provider = Provider.of<HomeProvider>(context);
     double width = MediaQuery.of(context).size.width;
     double waveSegmentHeight = canvasHeight / numberOfWaves;

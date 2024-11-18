@@ -16,12 +16,15 @@ class SheetScreen extends StatefulWidget {
 class _SheetScreenState extends State<SheetScreen> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final sheetProvider = Provider.of<SheetProvider>(widget.parentContext, listen: false);
-      sheetProvider.loadNodesData();
-      print(sheetProvider.getExerciseScore(0, 0));
+      final nodeProvider = Provider.of<NodeProvider>(context, listen: false);
+
+      // Wait for data to load
+      await sheetProvider.loadNodesData();
+      sheetProvider.getCurrentNodeIndex(nodeProvider.nodeIndex);
+      // print(sheetProvider.getExerciseScore(2));
     });
   }
 
@@ -97,7 +100,8 @@ class _SheetScreenState extends State<SheetScreen> {
                           ),
                           Spacer(),
                           Text(
-                            (sheetProvider.getExerciseScore(nodeProvider.nodeIndex - 1, 0)?.toString() ?? 'nope'),
+                            // '',
+                            (sheetProvider.getExerciseScore(0)?.toString() ?? ''),
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
                         ],
@@ -132,7 +136,8 @@ class _SheetScreenState extends State<SheetScreen> {
                           ),
                           Spacer(),
                           Text(
-                            (sheetProvider.getExerciseScore(nodeProvider.nodeIndex - 1, 1)?.toString() ?? ''),
+                            // '',
+                            (sheetProvider.getExerciseScore(1)?.toString() ?? ''),
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
                         ],

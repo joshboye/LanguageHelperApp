@@ -17,15 +17,19 @@ class HomeProvider with ChangeNotifier {
   HomeProvider({this.getLabelsUseCase});
 
   void initialize(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Initialize with the correct length
-      _nodeProgress = List.filled(6, 0.0);
-      // Set initial progress values
-      _nodeProgress[0] = 1.0;
-      _nodeProgress[1] = 1.0;
-      _nodeProgress[2] = 0.5;
-      notifyListeners();
-    });
+    try {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Initialize with the correct length
+        _nodeProgress = List.filled(6, 0.0);
+        // Set initial progress values
+        _nodeProgress[0] = 1.0;
+        _nodeProgress[1] = 1.0;
+        _nodeProgress[2] = 0.5;
+        notifyListeners();
+      });
+    } catch (e) {
+      print('error $e');
+    }
   }
 
   Future<void> fetchLabels() async {
@@ -35,7 +39,6 @@ class HomeProvider with ChangeNotifier {
 
       if (getLabelsUseCase != null) {
         _labels = await getLabelsUseCase!();
-        _labels.insert(0, Label("1"));
       }
     } catch (e) {
       print('Error fetching labels: $e');

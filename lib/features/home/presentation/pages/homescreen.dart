@@ -47,11 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final nodeProvider = Provider.of<NodeProvider>(context);
     nodeProvider.setUserName(widget.username);
 
-    // Generate default labels with the correct length based on numberOfNodes
-    final defaultLabels = List.generate(widget.numberOfNodes, (index) => 'Node ${index + 1}');
-
     // Use default labels when homeProvider.labels is empty
-    final labels = homeProvider.labels.isEmpty ? defaultLabels : homeProvider.labels.map((label) => label.name).toList();
+    final labels = homeProvider.labels.map((label) => label.name).toList();
 
     return Scaffold(
       backgroundColor: Colors.black,
