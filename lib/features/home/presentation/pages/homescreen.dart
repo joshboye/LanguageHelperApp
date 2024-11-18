@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await provider.fetchLabels();
       await sheetsProvider.loadNodesData(provider);
       provider.initialize(context);
+      provider.updateAllNodeProgress(sheetsProvider, provider);
 
       print('node progress in homeinti is ${provider.nodeProgress}');
     });
@@ -79,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     painter: SineWaveCanvas(
                       numberOfWaves: widget.numberOfWaves,
                       amplitudes: waveAmplitude,
+                      nodeProgress: homeProvider.nodeProgress,
                     ),
                   ),
                   // Only show NodeButtonsOverlay when we have valid labels

@@ -11,7 +11,7 @@ class NodeButtonsOverlay extends StatelessWidget {
   final List<double> amplitudes;
   final List<String> labels;
   final double frequency;
-  final void Function(int index) onNodeTapped; // Callback for node taps
+  final void Function(int index) onNodeTapped;
 
   const NodeButtonsOverlay({
     Key? key,
@@ -20,15 +20,13 @@ class NodeButtonsOverlay extends StatelessWidget {
     required this.canvasHeight,
     required this.amplitudes,
     required this.labels,
-    required this.onNodeTapped, // Add onNodeTapped parameter
+    required this.onNodeTapped,
     this.frequency = 0.5,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (labels.isEmpty || labels.length < numberOfNodes) {
-      // Ensure the widget doesn't render prematurely
-      print('in here');
       return const SizedBox.shrink();
     }
 
@@ -41,15 +39,14 @@ class NodeButtonsOverlay extends StatelessWidget {
       children: [
         for (int i = 1; i <= numberOfNodes; i++) ...{
           Positioned(
-            top: nodeSpacing * i - 20, // Adjust by half the button size
-            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20, // Adjust by half the button size
+            top: nodeSpacing * i - 20,
+            left: _calculateNodePosition(nodeSpacing * i, waveSegmentHeight, width) - 20,
             child: Row(
               children: [
                 GestureDetector(
                   onTap: () {
                     if (provider.nodeProgress[i - 1] == 1) {
-                      // provider.tapNode(i - 1); // Update progress for the node
-                      onNodeTapped(i); // Trigger the callback with node index
+                      onNodeTapped(i);
                     }
                   },
                   child: Stack(
@@ -59,7 +56,9 @@ class NodeButtonsOverlay extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: provider.nodeProgress[i - 1] == 1 ? const Color.fromARGB(255, 132, 111, 150).withOpacity(0.8) : Colors.grey.withOpacity(0.8),
+                          color: provider.nodeProgress[i - 1] == 1
+                              ? Colors.green.withOpacity(0.8) // Green for completed node
+                              : Colors.grey.withOpacity(0.8), // Default color
                           shape: BoxShape.circle,
                         ),
                       ),

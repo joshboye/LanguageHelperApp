@@ -33,12 +33,28 @@ Future<void> main() async {
 
   // Open a box
   await Hive.openBox<Node>('nodesBox');
-  final exercise = await Hive.openBox<Exercise>('exercisesBox');
+  final exerciseBox = await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Question>('questionsBox');
   await Hive.openBox<Option>('optionsBox');
 
+  // for (int i = 0; i < exerciseBox.length; i++) {
+  //   final exercise = exerciseBox.getAt(i);
+
+  //   if (exercise != null) {
+  //     // Update the score to null
+  //     exerciseBox.putAt(
+  //       i,
+  //       Exercise(
+  //         title: exercise.title,
+  //         questions: exercise.questions,
+  //         score: null, // Reset the score to null
+  //       ),
+  //     );
+  //   }
+  // }
+
   print("Existing scores:");
-  for (var exercise in exercise.values) {
+  for (var exercise in exerciseBox.values) {
     print("Exercise: ${exercise.title}, Score: ${exercise.score}");
   }
 
