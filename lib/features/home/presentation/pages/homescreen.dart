@@ -9,6 +9,7 @@ import 'package:stimuler_task_app/features/home/presentation/providers/homeprovi
 import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
 import 'package:stimuler_task_app/features/home/widgets/node_button_overlay.dart';
 import 'package:stimuler_task_app/features/home/widgets/sine_wave.dart';
+import 'package:stimuler_task_app/features/quiz/presentation/provider/quiz_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String username;
@@ -35,8 +36,14 @@ class _HomeScreenState extends State<HomeScreen> {
     waveAmplitude = List.generate(widget.numberOfWaves, (_) => 80.0 + Random().nextDouble() * 80 - 40);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<HomeProvider>(context, listen: false);
+      final sheetsProvider = Provider.of<SheetProvider>(context, listen: false);
+      final quizProvider = Provider.of<QuizProvider>(context, listen: false);
+      await quizProvider.loadQuizData();
       await provider.fetchLabels();
+      await sheetsProvider.loadNodesData(provider);
       provider.initialize(context);
+
+      print('node progress in homeinti is ${provider.nodeProgress}');
     });
   }
 

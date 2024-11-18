@@ -108,7 +108,7 @@ class QuizProvider with ChangeNotifier {
     if (nodes.isNotEmpty && nodes[currentNodeIndex].exercises.isNotEmpty && currentExerciseIndex < nodes[currentNodeIndex].exercises.length) {
       var exercise = nodes[currentNodeIndex].exercises[currentExerciseIndex];
       exercise.score = (exercise.score ?? 0) + 1; // Increment score
-      print('score is ${exercise.score}');
+      // print('score is ${exercise.score}');
 
       // Save updated exercise to Hive
       var exerciseBox = await Hive.openBox<Exercise>('exercisesBox');

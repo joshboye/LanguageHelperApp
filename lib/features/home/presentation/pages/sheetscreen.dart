@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stimuler_task_app/core/providers/node_provider.dart';
+import 'package:stimuler_task_app/features/home/presentation/providers/homeprovider.dart';
 import 'package:stimuler_task_app/features/home/presentation/providers/sheetprovider.dart';
 import 'package:stimuler_task_app/routes.dart';
 
@@ -20,9 +21,10 @@ class _SheetScreenState extends State<SheetScreen> with RouteAware {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final sheetProvider = Provider.of<SheetProvider>(widget.parentContext, listen: false);
       final nodeProvider = Provider.of<NodeProvider>(context, listen: false);
+      final homeProvider = Provider.of<HomeProvider>(context, listen: false);
 
       // Wait for data to load
-      await sheetProvider.loadNodesData();
+      await sheetProvider.loadNodesData(homeProvider);
       sheetProvider.getCurrentNodeIndex(nodeProvider.nodeIndex);
     });
   }
@@ -30,10 +32,8 @@ class _SheetScreenState extends State<SheetScreen> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
-    // Re-trigger the logic that you want to run again when coming back to this screen
     print('reubilt');
     setState(() {
-      // You can trigger state changes here or call your initialization logic
       print('rebuilt yay');
     });
   }

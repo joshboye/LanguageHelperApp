@@ -18,15 +18,15 @@ class HomeProvider with ChangeNotifier {
 
   void initialize(BuildContext context) {
     try {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Initialize with the correct length
+      // Initialize with the correct length
+      if (_nodeProgress.isEmpty) {
+        print('in here at hoem init');
         _nodeProgress = List.filled(6, 0.0);
         // Set initial progress values
         _nodeProgress[0] = 1.0;
-        _nodeProgress[1] = 1.0;
-        _nodeProgress[2] = 0.5;
-        notifyListeners();
-      });
+      }
+
+      notifyListeners();
     } catch (e) {
       print('error $e');
     }
@@ -47,6 +47,15 @@ class HomeProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  void updateNodeProgress(int index, double progress) {
+    // print('inside update nodeprogress');
+    if (index < _nodeProgress.length) {
+      _nodeProgress[index] = progress;
+      notifyListeners(); // Notify listeners to reflect the progress change
+      print(nodeProgress);
     }
   }
 

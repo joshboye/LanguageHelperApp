@@ -48,7 +48,7 @@ class NodeButtonsOverlay extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     if (provider.nodeProgress[i - 1] == 1) {
-                      provider.tapNode(i - 1); // Update progress for the node
+                      // provider.tapNode(i - 1); // Update progress for the node
                       onNodeTapped(i); // Trigger the callback with node index
                     }
                   },

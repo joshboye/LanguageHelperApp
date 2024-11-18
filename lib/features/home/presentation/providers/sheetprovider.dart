@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:stimuler_task_app/features/home/presentation/providers/homeprovider.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/exercises.dart';
 import 'package:stimuler_task_app/features/quiz/domain/models/node.dart';
 
@@ -39,16 +40,18 @@ class SheetProvider with ChangeNotifier {
   List<Exercise> exercises = [];
   int exerciseLength = 0;
 
-  Future<void> loadNodesData() async {
+  Future<void> loadNodesData(HomeProvider homeProvider) async {
     final nodeBox = await Hive.openBox<Node>('nodesBox');
     var exerciseBox = await Hive.openBox<Exercise>('exercisesBox');
     exercises = exerciseBox.values.toList(); //this has all the excersise scores.
     exerciseLength = exercises.length; // score
 
     nodes = nodeBox.values.toList();
-    var exceriseslengt = nodes[0].exercises.length; //this has excersise length
-    print('excersise length is ${exceriseslengt}');
+    // print('excersise length is ${exceriseslengt}');
+
     notifyListeners();
+
+    _updateNodeProgress(homeProvider);
   }
 
   // Node-to-exercise mapping
@@ -90,9 +93,38 @@ class SheetProvider with ChangeNotifier {
       final exerciseIndices = _nodeToExerciseMap[_currentNodeIndex];
       if (exerciseIndex >= 0 && exerciseIndex < exerciseIndices!.length) {
         final actualExerciseIndex = exerciseIndices[exerciseIndex];
+        // print('score is ${exercises[actualExerciseIndex].score}');
         return exercises[actualExerciseIndex].score;
       }
     }
     return null; // Return null if indices are invalid
+  }
+
+  void _updateNodeProgress(HomeProvider homeProvider) {
+    final nodeIndex = _currentNodeIndex;
+    final exerciseIndices = _nodeToExerciseMap[nodeIndex];
+
+    print('Update node progress for node index $nodeIndex');
+
+    // Check if all exercise scores for the node are non-null
+    bool allScoresFilled = true;
+    for (var exerciseIndex in exerciseIndices!) {
+      // Directly access the score for the exercise
+      final exercise = exercises[exerciseIndex]; // Get the Exercise object
+      print('Score for exercise $exerciseIndex: ${exercise.score}');
+
+      if (exercise.score == null) {
+        allScoresFilled = false;
+        break; // If any score is null, stop checking
+      }
+    }
+
+    print('All scores filled for node $nodeIndex: $allScoresFilled');
+
+    // If all exercise scores are filled, update progress for the next node
+    if (allScoresFilled && nodeIndex < homeProvider.nodeProgress.length - 1) {
+      print('Previous node is complete, updating progress for next node');
+      homeProvider.updateNodeProgress(nodeIndex + 1, 1.0);
+    }
   }
 }
