@@ -1,4 +1,4 @@
-# Stimuler App
+# Language Helper App
 
 ## Setup & Compilation Instructions
 
